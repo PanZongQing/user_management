@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"encoding/json"
 	"server/internal/models"
 
 	"github.com/go-resty/resty/v2"
@@ -13,7 +14,7 @@ func GetFreenasUsers() ([]models.FreenasUser, error) {
 		return nil, err
 	}
 	var users []models.FreenasUser
-	if err := resp.FromBody(&users); err != nil {
+	if err := json.Unmarshal(resp.Body(), &users); err != nil {
 		return nil, err
 	}
 	return users, nil

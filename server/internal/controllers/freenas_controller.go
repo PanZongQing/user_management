@@ -30,4 +30,12 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, user)
 }
 
+func UpdateUser(c *gin.Context) {
+
+}
+
+func DeleteUser(c *gin.Context) {
+
+}
+
 // 更新和删除用户的函数类似
