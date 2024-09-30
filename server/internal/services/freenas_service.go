@@ -1,14 +1,67 @@
 package services
 
+import (
+	"fmt"
+	"server/internal/models"
+	"server/internal/repositories"
+)
+
 type FreenasUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-func GetFreenasUsers() ([]FreenasUser, error) {
-	// 实现获取 FreeNAS 用户的逻辑
+func GetFreenasUsers(username string) (*models.FreenasUser, error) {
+	user, err := repositories.GetFreenasUser(username)
+	if err != nil {
+		return nil, err
+	}
+	return &models.FreenasUser{
+		ID:       user.ID,
+		Username: user.Username,
+	}, nil
 }
 
-func CreateFreenasUser(user FreenasUser) error {
-	// 实现创建 FreeNAS 用户的逻辑
+// 实现获取 FreeNAS 用户的逻辑
+
+func CreateFreenasUser(user models.FreenasUser) error {
+	err := repositories.CreateFreenasUser(user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateFreenasUser(username string, updatedUser models.FreenasUser) error {
+	existingUser, err := repositories.GetFreenasUser(username)
+	if err != nil {
+		return err
+	}
+
+	if existingUser == nil {
+		return fmt.Errorf("用户 %s 不存在", username)
+	}
+
+	err = repositories.UpdateFreenasUser(username, updatedUser)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteFreenasUser(username string) error {
+	existingUser, err := repositories.GetFreenasUser(username)
+	if err != nil {
+		return err
+	}
+
+	if existingUser == nil {
+		return fmt.Errorf("用户 %s 不存在", username)
+	}
+
+	err = repositories.DeleteFreenasUser(username)
+	if err != nil {
+		return err
+	}
+	return nil
 }

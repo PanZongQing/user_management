@@ -1,0 +1,4 @@
+[freenas]
+host = "http://freenas.polixir.site/api/v2.0"
+root = "root"
+password = "goglpe"
