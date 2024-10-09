@@ -12,14 +12,12 @@ type FreenasUser struct {
 }
 
 func GetFreenasUsers(username string) (*models.FreenasUser, error) {
-	user, err := repositories.GetFreenasUser(username)
+	users, err := repositories.GetFreenasUserByUsername(username)
 	if err != nil {
 		return nil, err
 	}
-	return &models.FreenasUser{
-		ID:       user.ID,
-		Username: user.Username,
-	}, nil
+
+	return users, nil
 }
 
 // 实现获取 FreeNAS 用户的逻辑
@@ -33,7 +31,7 @@ func CreateFreenasUser(user models.FreenasUser) error {
 }
 
 func UpdateFreenasUser(username string, updatedUser models.FreenasUser) error {
-	existingUser, err := repositories.GetFreenasUser(username)
+	existingUser, err := repositories.GetFreenasUserByUsername(username)
 	if err != nil {
 		return err
 	}
@@ -50,7 +48,7 @@ func UpdateFreenasUser(username string, updatedUser models.FreenasUser) error {
 }
 
 func DeleteFreenasUser(username string) error {
-	existingUser, err := repositories.GetFreenasUser(username)
+	existingUser, err := repositories.GetFreenasUserByUsername(username)
 	if err != nil {
 		return err
 	}

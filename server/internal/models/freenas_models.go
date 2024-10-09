@@ -7,3 +7,8 @@ type FreenasUser struct {
 	Email    string `json:"email"`
 	FullName string `json:"fullname"`
 }
+
+type FreenasGroup struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
