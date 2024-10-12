@@ -7,11 +7,22 @@ import (
 )
 
 func SetupRouter(r *gin.Engine) {
-	api := r.Group("/api")
+	freenas := r.Group("/freenas")
 	{
-		api.GET("/users", controllers.GetUsers)
-		api.POST("/users", controllers.CreateUser)
-		api.PUT("/users/:id", controllers.UpdateUser)
-		api.DELETE("/users/:id", controllers.DeleteUser)
+		freenas.GET("/users", controllers.GetUsers)
+		freenas.POST("/users", controllers.CreateUser)
+		freenas.PUT("/users/:id", controllers.UpdateUser)
+		freenas.DELETE("/users/:id", controllers.DeleteUser)
 	}
+	{
+		freenas.GET("/groups", controllers.GetGroup)
+	}
+	gitlab := r.Group("/gitlab")
+	{
+		gitlab.GET("/users", controllers.GetUsers)
+		gitlab.POST("/users", controllers.CreateUser)
+		gitlab.PUT("/users/:id", controllers.UpdateUser)
+		gitlab.DELETE("/users/:id", controllers.DeleteUser)
+	}
+
 }

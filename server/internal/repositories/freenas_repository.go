@@ -3,6 +3,7 @@ package repositories
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"server/internal/models"
 
@@ -55,48 +56,47 @@ func GetFreenasGroup(department_name string) (*models.FreenasGroup, error) {
 
 	// 遍历用户列表，查找匹配的用户
 	for _, g := range group {
-		// fmt.Println(u.Username)
-		switch department_name {
-		case "IT":
-			if g.Name == "IT" {
-				return &g, nil
-			}
-		case "HR":
-			if g.Name == "HR" {
-				return &g, nil
-			}
-		case "Marketing":
-			if g.Name == "Marketing" {
-				return &g, nil
-			}
-		case "Finance":
-			if g.Name == "Finance" {
-				return &g, nil
-			}
-		case "Sales":
-			if g.Name == "Sales" {
-				return &g, nil
-			}
-		default:
-			return nil, fmt.Errorf("部门 %s 未找到", department_name)
+		// fmt.Println(g.Group)
+		// fmt.Println(department_name)
+		if g.Group == department_name {
+			return &g, nil // 返回匹配的用户指针
 		}
-	}
 
-	return nil, fmt.Errorf("用户 %s 未找到", department_name)
+	}
+	return nil, fmt.Errorf("部门 %s 未找到", department_name)
 }
 
 // 其他操作类似
 func CreateFreenasUser(user models.FreenasUser) error {
 	client := resty.New()
 	url := viper.GetString("freenas.host") + "/user" // 确保 URL 正确拼接
-	resp, err := client.R().
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		return fmt.Errorf("failed to marshal user: %s", err)
+	}
+	var data map[string]interface{}
+	err = json.Unmarshal([]byte(userJson), &data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	delete(data, "group_name")
+	updateJson, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal user: %s", err)
+	}
+
+	// fmt.Println("Json数据是%s", string(userJson))
+	freenasUser := viper.GetString("freenas.username")
+	freenasPassword := viper.GetString("freenas.password")
+	resp, err := client.R().SetBasicAuth(freenasUser, freenasPassword).
 		SetHeader("Content-Type", "application/json").
-		SetBody(user).
+		SetBody(updateJson).
 		Post(url)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode() != http.StatusCreated {
+	fmt.Println(resp.StatusCode())
+	if resp.StatusCode() != http.StatusOK {
 		return fmt.Errorf("failed to create user: %s", resp.String())
 	}
 	return nil

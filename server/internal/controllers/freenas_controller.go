@@ -18,6 +18,16 @@ func GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
+func GetGroup(c *gin.Context) {
+	groupname := c.Query("group")
+	users, err := services.GetFreenasGroup(groupname)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}
+
 func CreateUser(c *gin.Context) {
 	var user models.FreenasUser
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -39,8 +49,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	username := c.Param("username") // 从 URL 参数获取用户名
-	err := services.UpdateFreenasUser(username, user)
+	err := services.UpdateFreenasUser(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
