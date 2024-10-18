@@ -2,3 +2,7 @@ freenas:
   host: "http://freenas.polixir.site/api/v2.0"
   username: "root"
   password: "goglpe"
+
+gitlab:
+  url: "http://gitlab.polixir.site"
+  token: "2ubxsn2nEFyBuVEz_L-Y"

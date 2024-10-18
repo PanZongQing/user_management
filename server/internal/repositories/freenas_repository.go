@@ -6,23 +6,52 @@ import (
 	"log"
 	"net/http"
 	"server/internal/models"
+	"strconv"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/viper"
 )
 
-func GetFreenasUserByUsername(username string) (*models.FreenasUser, error) {
+var (
+	freenasUser     string
+	freenasPassword string
+)
+
+func init() {
+	Loadconfig()
+	var err error
+	freenasUser = viper.GetString("freenas.username")
+	freenasPassword = viper.GetString("freenas.password")
+
+	if freenasUser == "" || freenasPassword == "" {
+		err = fmt.Errorf("freenas username or password not set")
+		log.Fatal(err)
+	}
+}
+
+func Loadconfig() {
+	viper.SetConfigFile("./config.yaml")
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("./config")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println("Error reading config file, ", err)
+	}
+}
+
+func GetFreenasUserByUsername(username string) (*models.FreenasUserResponse, error) {
 	client := resty.New()
 	url := viper.GetString("freenas.host") + "/user"
-	freenasUser := viper.GetString("freenas.username")
-	freenasPassword := viper.GetString("freenas.password")
+
 	resp, err := client.R().SetBasicAuth(freenasUser, freenasPassword).Get(url)
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println(resp.String())
+	// fmt.Println("响应数据是：%s", resp.String())
 
-	var users []models.FreenasUser
+	var users []models.FreenasUserResponse
 	if err := json.Unmarshal(resp.Body(), &users); err != nil {
 		return nil, err
 	}
@@ -41,8 +70,6 @@ func GetFreenasUserByUsername(username string) (*models.FreenasUser, error) {
 func GetFreenasGroup(department_name string) (*models.FreenasGroup, error) {
 	client := resty.New()
 	url := viper.GetString("freenas.host") + "/group"
-	freenasUser := viper.GetString("freenas.username")
-	freenasPassword := viper.GetString("freenas.password")
 	resp, err := client.R().SetBasicAuth(freenasUser, freenasPassword).Get(url)
 	if err != nil {
 		return nil, err
@@ -67,7 +94,7 @@ func GetFreenasGroup(department_name string) (*models.FreenasGroup, error) {
 }
 
 // 其他操作类似
-func CreateFreenasUser(user models.FreenasUser) error {
+func CreateFreenasUser(user models.FreenasUserRequest) error {
 	client := resty.New()
 	url := viper.GetString("freenas.host") + "/user" // 确保 URL 正确拼接
 	userJson, err := json.Marshal(user)
@@ -80,14 +107,13 @@ func CreateFreenasUser(user models.FreenasUser) error {
 		log.Fatal(err)
 	}
 	delete(data, "group_name")
+	delete(data, "id")
 	updateJson, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal user: %s", err)
 	}
 
 	// fmt.Println("Json数据是%s", string(userJson))
-	freenasUser := viper.GetString("freenas.username")
-	freenasPassword := viper.GetString("freenas.password")
 	resp, err := client.R().SetBasicAuth(freenasUser, freenasPassword).
 		SetHeader("Content-Type", "application/json").
 		SetBody(updateJson).
@@ -102,13 +128,13 @@ func CreateFreenasUser(user models.FreenasUser) error {
 	return nil
 }
 
-func UpdateFreenasUser(username string, user models.FreenasUser) error {
+func UpdateFreenasUser(userid int, user models.FreenasUserUpdateRequest) error {
 	client := resty.New()
-	url := viper.GetString("freenas.host") + "/users/" + username // URL 拼接应包含用户名
-	resp, err := client.R().
+	url := viper.GetString("freenas.host") + "/user/id/" + strconv.Itoa(userid) // URL 拼接应包含用户名
+	resp, err := client.R().SetBasicAuth(freenasUser, freenasPassword).
 		SetHeader("Content-Type", "application/json").
 		SetBody(user).
-		Patch(url)
+		Put(url)
 	if err != nil {
 		return err
 	}
@@ -118,14 +144,14 @@ func UpdateFreenasUser(username string, user models.FreenasUser) error {
 	return nil
 }
 
-func DeleteFreenasUser(username string) error {
+func DeleteFreenasUser(userid int) error {
 	client := resty.New()
-	url := viper.GetString("freenas.host") + "/users/" + username // URL 拼接应包含用户名
-	resp, err := client.R().Delete(url)
+	url := viper.GetString("freenas.host") + "/user/id/" + strconv.Itoa(userid) // URL 拼接应包含用户名
+	resp, err := client.R().SetBasicAuth(freenasUser, freenasPassword).Delete(url)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode() != http.StatusNoContent {
+	if resp.StatusCode() != http.StatusOK {
 		return fmt.Errorf("failed to delete user: %s", resp.String())
 	}
 	return nil

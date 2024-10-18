@@ -9,20 +9,20 @@ import (
 func SetupRouter(r *gin.Engine) {
 	freenas := r.Group("/freenas")
 	{
-		freenas.GET("/users", controllers.GetUsers)
-		freenas.POST("/users", controllers.CreateUser)
-		freenas.PUT("/users/:id", controllers.UpdateUser)
-		freenas.DELETE("/users/:id", controllers.DeleteUser)
+		freenas.GET("/users", controllers.GetFreenasUsers)
+		freenas.POST("/users", controllers.CreateFreenasUser)
+		freenas.PUT("/users", controllers.UpdateFreenasUser)
+		freenas.DELETE("/users", controllers.DeleteFreenasUser)
 	}
 	{
-		freenas.GET("/groups", controllers.GetGroup)
+		freenas.GET("/groups", controllers.GetFreenasGroup)
 	}
 	gitlab := r.Group("/gitlab")
 	{
-		gitlab.GET("/users", controllers.GetUsers)
-		gitlab.POST("/users", controllers.CreateUser)
-		gitlab.PUT("/users/:id", controllers.UpdateUser)
-		gitlab.DELETE("/users/:id", controllers.DeleteUser)
+		gitlab.GET("/users", controllers.GetGitlabUser)
+		gitlab.POST("/users", controllers.CreateGitlabUser)
+		gitlab.PUT("/users", controllers.UpdateGitlabUser)
+		gitlab.DELETE("/users", controllers.DeleteGitlabUser)
 	}
 
 }

@@ -6,12 +6,7 @@ import (
 	"server/internal/repositories"
 )
 
-type FreenasUser struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func GetFreenasUsers(username string) (*models.FreenasUser, error) {
+func GetFreenasUsers(username string) (*models.FreenasUserResponse, error) {
 	users, err := repositories.GetFreenasUserByUsername(username)
 	if err != nil {
 		return nil, err
@@ -32,7 +27,7 @@ func GetFreenasGroup(department_name string) (*models.FreenasGroup, error) {
 
 // 实现获取 FreeNAS 用户的逻辑
 
-func CreateFreenasUser(user models.FreenasUser) error {
+func CreateFreenasUser(user models.FreenasUserRequest) error {
 	var group models.FreenasGroup
 	switch user.GroupName {
 	case "财务部":
@@ -64,17 +59,21 @@ func CreateFreenasUser(user models.FreenasUser) error {
 	return nil
 }
 
-func UpdateFreenasUser(user models.FreenasUser) error {
+func UpdateFreenasUser(user models.FreenasUserRequest) error {
 	existingUser, err := repositories.GetFreenasUserByUsername(user.Username)
 	if err != nil {
 		return err
 	}
-
+	// fmt.Println(&existingUser)
 	if existingUser == nil {
 		return fmt.Errorf("用户 %s 不存在", user.Username)
 	}
+	user.ID = existingUser.ID
+	var updateJson models.FreenasUserUpdateRequest
+	updateJson.Username = user.Username
+	updateJson.Password = user.Password
 
-	err = repositories.UpdateFreenasUser(username, updatedUser)
+	err = repositories.UpdateFreenasUser(user.ID, updateJson)
 	if err != nil {
 		return err
 	}
@@ -82,6 +81,7 @@ func UpdateFreenasUser(user models.FreenasUser) error {
 }
 
 func DeleteFreenasUser(username string) error {
+	fmt.Println(username)
 	existingUser, err := repositories.GetFreenasUserByUsername(username)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func DeleteFreenasUser(username string) error {
 		return fmt.Errorf("用户 %s 不存在", username)
 	}
 
-	err = repositories.DeleteFreenasUser(username)
+	err = repositories.DeleteFreenasUser(existingUser.ID)
 	if err != nil {
 		return err
 	}
