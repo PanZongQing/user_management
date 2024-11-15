@@ -6,3 +6,8 @@ freenas:
 gitlab:
   url: "http://gitlab.polixir.site"
   token: "2ubxsn2nEFyBuVEz_L-Y"
+
+gpu:
+  url: "http://116.172.93.164:28080/api/back_admin/business"
+  username: "admin"
+  password: "admin"

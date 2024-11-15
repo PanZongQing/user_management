@@ -2,10 +2,11 @@
   <q-page padding>
     <div>
       <h1>用户管理</h1>
-      <q-input v-model="fullname" label="输入全名" outlined />
+      <q-input v-model="full_name" label="输入全名" outlined />
       <q-input v-model="username" label="输入用户名" outlined />
       <q-input v-model="password" type="password" label="输入密码" outlined />
       <q-input v-model="email" label="输入邮箱" outlined />
+      <q-input v-model="group_name" label="输入部门" outlined />
 
       <q-checkbox v-model="selectedOptions.freenas" label="Freenas" />
       <q-checkbox v-model="selectedOptions.gitlab" label="GitLab" />
@@ -31,11 +32,19 @@
           </q-card-section>
         </q-card>
       </div>
+      <div v-else>
+        <q-card>
+          <q-card-section>
+            <h2>查询失败</h2>
+            <p>无法获取用户信息，请检查输入是否正确</p>
+          </q-card-section>
+        </q-card>
+      </div>
 
       <q-list bordered>
         <q-item v-for="(user, index) in users" :key="index">
           <q-item-section
-            >{{ user.fullname }} ({{ user.username }})</q-item-section
+            >{{ user.full_name }} ({{ user.username }})</q-item-section
           >
           <q-item-section side>
             <q-btn
@@ -61,10 +70,11 @@ import axios from 'axios';
 
 export default {
   setup() {
-    const fullname = ref('');
+    const full_name = ref('');
     const username = ref('');
     const password = ref('');
     const email = ref('');
+    const group_name = ref('');
     const selectedOptions = ref({
       freenas: false,
       gitlab: false,
@@ -72,35 +82,67 @@ export default {
     });
     const users = ref([]);
     const searchUsername = ref('');
-    const fetchedUser = ref('');
+    const fetchedUser = ref({});
 
     const addUser = async () => {
       if (
-        fullname.value.trim() &&
+        full_name.value.trim() &&
         username.value.trim() &&
         password.value.trim() &&
-        email.value.trim()
+        email.value.trim() &&
+        group_name.value.trim()
       ) {
-        const userData = {
-          fullname: fullname.value.trim(),
+        const freenasuserData = {
+          full_name: full_name.value.trim(),
           username: username.value.trim(),
           password: password.value.trim(),
           email: email.value.trim(),
-          services: {
-            freenas: selectedOptions.value.freenas,
-            gitlab: selectedOptions.value.gitlab,
-            gpu: selectedOptions.value.gpu,
-          },
+          group_name: group_name.value.trim(),
+        };
+        const gitlabuserData = {
+          full_name: full_name.value.trim(),
+          username: username.value.trim(),
+          password: password.value.trim(),
+          email: email.value.trim(),
         };
 
-        // 调用 API 创建用户
-        try {
-          await axios.post('YOUR_CREATE_API_ENDPOINT', userData);
-          users.value.push(userData);
-          clearFields();
-        } catch (error) {
-          console.error('添加用户失败：', error);
+        // 遍历选择的服务，将其对应的 API 地址加入列表
+        if (selectedOptions.value.freenas) {
+          try {
+            await axios.post(
+              'http://localhost:8080/freenas/users',
+              freenasuserData
+            );
+            users.value.push(freenasuserData);
+            clearFields();
+          } catch (error) {
+            console.error('添加用户失败：', error);
+          }
         }
+        if (selectedOptions.value.gitlab) {
+          try {
+            await axios.post(
+              'http://localhost:8080/gitlab/users',
+              gitlabuserData
+            );
+            users.value.push(gitlabuserData);
+            clearFields();
+          } catch (error) {
+            console.error('添加用户失败：', error);
+          }
+        }
+        if (selectedOptions.value.gpu) {
+          // 调用 GPU 算力池 API 创建用户
+        }
+
+        // 调用 API 创建用户
+        // try {
+        //   await axios.post('YOUR_CREATE_API_ENDPOINT', userData);
+        //   users.value.push(userData);
+        //   clearFields();
+        // } catch (error) {
+        //   console.error('添加用户失败：', error);
+        // }
       }
     };
 
@@ -119,11 +161,10 @@ export default {
       if (searchUsername.value.trim()) {
         try {
           const response = await axios.get(
-            `http://localhost:8080/gitlab/users`,
+            'http://localhost:8080/gitlab/users',
             { params: { username: searchUsername.value } } // 通过 query 参数传递数据
           );
-          fetchedUser.value = response.data; // 假设返回的数据格式正确
-          //   console.log(response.data);
+          fetchedUser.value = response.data.data; // 假设返回的数据格式正确
           console.log(fetchedUser.value);
         } catch (error) {
           console.error('查询用户失败：', error);
@@ -133,7 +174,7 @@ export default {
     };
 
     const clearFields = () => {
-      fullname.value = '';
+      full_name.value = '';
       username.value = '';
       password.value = '';
       email.value = '';
@@ -147,7 +188,7 @@ export default {
     };
 
     return {
-      fullname,
+      full_name,
       username,
       password,
       email,
@@ -158,6 +199,7 @@ export default {
       addUser,
       removeUser,
       fetchUserInfo,
+      group_name,
     };
   },
 };

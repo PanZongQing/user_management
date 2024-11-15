@@ -33,4 +33,22 @@ type GitlabUserRequest struct {
 	Email    string `json:"email"`
 }
 
-type GitlabUserResponse struct{}
+type GitlabUserResponse struct {
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+}
+
+type GpuUserRequest struct {
+	Username    string `json:"username"`
+	PhoneNumber string `json:"phone_number"`
+	Email       string `json:"email"`
+}
+
+type GpuUserResponse struct {
+	ID          int    `json:"id"`
+	Username    string `json:"username"`
+	PhoneNumber string `json:"phone_number"`
+	Email       string `json:"email"`
+}
