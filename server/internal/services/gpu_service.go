@@ -5,7 +5,7 @@ import (
 	"server/internal/repositories"
 )
 
-func GetGpuUser(username string) (*models.GpuUserResponse, error) {
+func GetGpuUser(username string) (*models.GpuUser, error) {
 	data, err := repositories.GetGpuUser(username)
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func CreateGpuUser(data models.GpuUserRequest) error {
 	return nil
 }
 
-func DeleteGpuUser(data models.GpuUserResponse) error {
+func DeleteGpuUser(data models.GpuUser) error {
 	//TODO: implement
 	err := repositories.DeleteGpuUser(data.ID)
 	if err != nil {

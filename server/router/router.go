@@ -24,5 +24,11 @@ func SetupRouter(r *gin.Engine) {
 		gitlab.PUT("/users", controllers.UpdateGitlabUser)
 		gitlab.DELETE("/users", controllers.DeleteGitlabUser)
 	}
+	gpu := r.Group("/gpu")
+	{
+		gpu.GET("/users", controllers.GetGpuUser)
+		gpu.POST("/users", controllers.CreateGpuUser)
+		gpu.DELETE("/users", controllers.DeleteGpuUser)
+	}
 
 }

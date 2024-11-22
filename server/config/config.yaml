@@ -8,6 +8,6 @@ gitlab:
   token: "2ubxsn2nEFyBuVEz_L-Y"
 
 gpu:
-  url: "http://116.172.93.164:28080/api/back_admin/business"
+  url: "http://116.172.93.164:28080/api"
   username: "admin"
   password: "admin"

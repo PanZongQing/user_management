@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,6 +17,18 @@ var (
 	gpuPassword string
 )
 
+type AuthResquest struct {
+	Admin    bool   `json:"admin"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type TokenDataResponse struct {
+	Data struct {
+		AccessToken string `json:"access"`
+	} `json:"data"`
+}
+
 func init() {
 	Loadconfig()
 	var err error
@@ -26,25 +40,60 @@ func init() {
 		log.Fatal(err)
 	}
 }
-
-func GetGpuUser(username string) (*models.GpuUserResponse, error) {
-	url := viper.GetString("gpu.url") + "/user/" + username
+func HashPassword(password string) string {
+	hash := sha256.New()
+	hash.Write([]byte(password))
+	return hex.EncodeToString(hash.Sum(nil))
+}
+func GetToken() (string, error) {
+	url := viper.GetString("gpu.url") + "/user/token"
 	client := resty.New()
-	resp, err := client.R().SetBasicAuth(gpuUser, gpuPassword).Get(url)
+	hashedPassword := HashPassword(gpuPassword)
+	authRequest := AuthResquest{
+		Admin:    true,
+		Username: gpuUser,
+		Password: hashedPassword,
+	}
+
+	resp, err := client.R().SetHeader("Content-Type", "application/json").SetBody(authRequest).Post(url)
+	if err != nil {
+		return "", err
+	}
+	var tokenData TokenDataResponse
+	if err := json.Unmarshal([]byte(resp.String()), &tokenData); err != nil {
+		return "", err
+	}
+	accessToken := tokenData.Data.AccessToken
+	return accessToken, nil
+
+}
+
+func GetGpuUser(username string) (*models.GpuUser, error) {
+	url := viper.GetString("gpu.url") + "/back_admin/business/user"
+	client := resty.New()
+	token, err := GetToken()
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println("响应数据是：%s", resp.String())
-
-	var users []models.GpuUserResponse
-	if err := json.Unmarshal(resp.Body(), &users); err != nil {
+	gettok := "Bearer " + token
+	fmt.Printf("token是:%s", gettok)
+	resp, err := client.R().SetHeader("Authorization", gettok).SetQueryParam("number", username).Get(url)
+	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("响应数据是：%s", resp.String())
+
+	var users models.GpuUserResponse
+	if err := json.Unmarshal([]byte(resp.String()), &users); err != nil {
+		return nil, err
+	}
+	fmt.Println(users.Data)
 
 	// 遍历用户列表，查找匹配的用户
-	for _, u := range users {
+	for _, u := range users.Data {
 		// fmt.Println(u.Username)
 		if u.Username == username { // 假设 FreenasUser 结构体有 Username 字段
+			fmt.Printf("找到用户:%s", u.Username)
 			return &u, nil // 返回匹配的用户指针
 		}
 	}
@@ -53,9 +102,13 @@ func GetGpuUser(username string) (*models.GpuUserResponse, error) {
 }
 
 func CreateGpuUser(data models.GpuUserRequest) error {
-	url := viper.GetString("gpu.url") + "/user"
+	url := viper.GetString("gpu.url") + "/back_admin/business/user"
 	client := resty.New()
-	_, err := client.R().SetBasicAuth(gpuUser, gpuPassword).SetBody(data).Post(url)
+	token, err := GetToken()
+	if err != nil {
+		return err
+	}
+	_, err = client.R().SetHeader("Authorization", "Bearer "+token).SetBody(data).Post(url)
 	if err != nil {
 		return err
 	}

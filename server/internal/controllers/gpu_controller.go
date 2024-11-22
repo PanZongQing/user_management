@@ -37,7 +37,7 @@ func CreateGpuUser(c *gin.Context) {
 }
 
 func DeleteGpuUser(c *gin.Context) {
-	var user models.GpuUserResponse
+	var user models.GpuUser
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

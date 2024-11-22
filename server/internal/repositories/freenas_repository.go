@@ -30,10 +30,10 @@ func init() {
 }
 
 func Loadconfig() {
-	viper.SetConfigFile("./config.yaml")
+	viper.SetConfigFile("../config/config.yaml")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config")
+	viper.AddConfigPath("../config")
 
 	err := viper.ReadInConfig()
 	if err != nil {
