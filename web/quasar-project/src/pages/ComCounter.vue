@@ -134,7 +134,7 @@ export default {
         if (selectedOptions.value.freenas) {
           try {
             await axios.post(
-              'http://localhost:8080/freenas/users',
+              'http://api.tools.polixir.site/freenas/users',
               freenasuserData
             );
             users.value.push(freenasuserData);
@@ -146,7 +146,7 @@ export default {
         if (selectedOptions.value.gitlab) {
           try {
             await axios.post(
-              'http://localhost:8080/gitlab/users',
+              'http://api.tools.polixir.site/gitlab/users',
               gitlabuserData
             );
             users.value.push(gitlabuserData);
@@ -158,7 +158,10 @@ export default {
         if (selectedOptions.value.gpu) {
           // 调用 GPU 算力池 API 创建用户
           try {
-            await axios.post('http://localhost:8080/gpu/users', gitlabuserData);
+            await axios.post(
+              'http://api.tools.polixir.site/gpu/users',
+              gitlabuserData
+            );
             users.value.push(gpuuserData);
             clearFields();
           } catch (error) {
@@ -194,15 +197,15 @@ export default {
         const successStatuses = [];
         const endpoints = [
           {
-            url: 'http://localhost:8080/gitlab/users',
+            url: 'http://api.tools.polixir.site/gitlab/users',
             result: fetchedgitlabUser,
           },
           {
-            url: 'http://localhost:8080/freenas/users',
+            url: 'http://api.tools.polixir.site/freenas/users',
             result: fetchedfreenasUser,
           },
           {
-            url: 'http://localhost:8080/gpu/users',
+            url: 'http://api.tools.polixir.site/gpu/users',
             result: fetchedgpuUser,
           },
         ];
